@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/beanbowl.jar"/>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/colt.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/commons-math-1.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/jdom.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/jsolver.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/log4j-1.2.15.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/plot.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/repast.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="F:/Documents/Eclipse/CourseIntelligentAgents/intelagent_jars/logist.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Documents/Eclipse/CourseIntelligentAgents/logist_doc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
