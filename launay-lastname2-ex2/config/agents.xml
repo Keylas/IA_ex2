@@ -22,7 +22,7 @@
 		<set discount-factor=".0"/>
 	</agent>
 	
-	<agent name="reactive-uncheck">
+	<agent name="reactive-un">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveUncheck"/>
 		<set discount-factor=".0"/>

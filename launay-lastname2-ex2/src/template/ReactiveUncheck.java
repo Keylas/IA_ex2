@@ -22,11 +22,17 @@ public class ReactiveUncheck implements ReactiveBehavior {
 	private Agent myAgent;
 
 
-	
+	/* NOTASK and PICKUP just help readability when it comes to action/task availability
+	 * They will actually both be equals to the number of city (so must be read from configuration)
+	 */
 	private int NOTASK;
 	private int PICKUP;
-	
+
+	/*Keep a reference to the cities for convenience
+	 * Actual use is when creating the Move action
+	 */
 	private City[] cities;
+
 
 	private int[][] strategy;
 
@@ -35,53 +41,73 @@ public class ReactiveUncheck implements ReactiveBehavior {
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 
 
+		long startTime = System.currentTimeMillis();
+		long limiTime = agent.readProperty("timeout-setup", Long.class, 5000L);
 
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
-		Double discount = agent.readProperty("discount-factor", Double.class,
-				0.95);
+		Double discount = agent.readProperty("discount-factor", Double.class,0.95);
 
+		this.random = new Random();
+		this.pPickup = discount;
+		this.numActions = 0;
+		this.myAgent = agent;
+
+		//Get the costPerKm of our vehicle
 		int costPerKm = agent.vehicles().get(0).costPerKm();
 
-		double epsilon = 0.1;
 
 
 		int numCities = topology.size();
 		NOTASK=numCities;
 		PICKUP=numCities;
 
+
+
 		System.out.println(numCities);
 
 		cities = new City[numCities];
-		
+
+		/*
+		 * Extract and store information from the topology and task distribution
+		 * We make a copy for readability
+		 */
+
 		double[][] costBetweenCities = new double[numCities][numCities];
 
+		/*
+		 * probabilityForTask[a][b] is the probability that there is a task for city b in city a, or no task if b=NOTASK=numCity
+		 * (city are from 0 to numCity-1 so numCity is used for NOTASK)
+		 */
 		double[][] probabilityForTask = new double[numCities][numCities+1];
 
 		double[][] expectedTaskReward = new double[numCities][numCities];
 
 
-		
+
 
 		//Fill information tables
 		for(City city1:topology) {
-			
+
+			//keep a reference to the cities
 			cities[city1.id]=city1;
-			
-			for(City city2:topology) {
-				costBetweenCities[city1.id][city2.id]=city1.distanceTo(city2)*costPerKm;
-				probabilityForTask[city1.id][city2.id]=td.probability(city1, city2);
-				expectedTaskReward[city1.id][city2.id]=td.reward(city1, city2);
+
+			for(City city2:topology) {				
+				costBetweenCities[city1.id][city2.id]=city1.distanceTo(city2)*costPerKm; //fill cost table between cities [numCity*numCity]
+				probabilityForTask[city1.id][city2.id]=td.probability(city1, city2); //fill probability for task between city1 and city2
+				expectedTaskReward[city1.id][city2.id]=td.reward(city1, city2); //fill the expected reward for the task
 
 			}
+
+			// also fill the probability for no task in city1
 			probabilityForTask[city1.id][numCities]=td.probability(city1, null);
 		}
 
 
-		//V(S)
+		//instantiate our V(S) that give the value of states
 		double[][] valueOfState = new double[numCities][numCities+1];
 
-		//Q(S)
+		//Create Q(S,a): for each numCity*(numCity+1) state [][] , we have a list of possible actions that give a vaule (so it is Hasmap<actioncode> => Q(s,a))
 		HashMap<Integer,Double>[][] q = (HashMap<Integer,Double>[][]) Array.newInstance(HashMap.class, topology.size(),topology.size()+1);
 
 		//Instantiate Q(S) & V(S)
@@ -93,22 +119,32 @@ public class ReactiveUncheck implements ReactiveBehavior {
 				/*For every state, create the set of possible actions and their result
 				 * Action = move to city_i which is in currentCity.neighbors() (action i)
 				 * or pickup task (action PICKUP)
+				 * [We use numCity as PICKUP code since cities goes from 0 to numCity
 				 */
 				HashMap<Integer,Double> h = new HashMap<Integer,Double>();
 				for(City nCity:cCity.neighbors()) {
 					h.put(nCity.id, -costBetweenCities[cCity.id][nCity.id]);
 				}
-				if(deliveryCity!=NOTASK) {h.put(PICKUP,0.0);}	//we are in a state with an available task: action pickup possible
+				if(deliveryCity!=NOTASK) {h.put(PICKUP,0.0);}	//if we are in a state with an available task, action pickup possible
 				q[cCity.id][deliveryCity]=h;
 			}
 		}
 
 
-		//LEARNING 
 
 
+		//LEARNING PHASE
+
+
+		/*
+		 * Control variables to check for convergence:
+		 * we stop after a loop reached: forall s, |V(s)_after - V(s)_before|<epsilon
+		 */
+		double epsilon = 0.1;
 		int numberOfStatesUnchanged =0; //when to stop: no value of S(V) has change of more than epsilon 
-		while(numberOfStatesUnchanged!=numCities*(numCities+1)) {
+
+
+		while(numberOfStatesUnchanged!=numCities*(numCities+1) && System.currentTimeMillis()-startTime<limiTime*0.8) {
 			numberOfStatesUnchanged=0;
 
 			//Loop on the possible states (s in S)
@@ -123,8 +159,6 @@ public class ReactiveUncheck implements ReactiveBehavior {
 					for(int action:q[currentCity][deliveryCity].keySet()) {
 
 						double value=0;
-
-
 						int nextCity;
 
 						if(action==PICKUP) {
@@ -142,14 +176,13 @@ public class ReactiveUncheck implements ReactiveBehavior {
 						 * where reward is actually 0 if we didn't pickup
 						 */
 
-
 						//we now compute gamma*sum{s}(transitionProbability*V(S))
-						double maybe=0;
+						double sumOnTransition=0;
 						for(int taskAtNext=0; taskAtNext<numCities+1; taskAtNext++) {
-							maybe+=probabilityForTask[nextCity][taskAtNext]*valueOfState[nextCity][taskAtNext];
+							sumOnTransition+=probabilityForTask[nextCity][taskAtNext]*valueOfState[nextCity][taskAtNext];
 						}
 
-						value+=discount*maybe;
+						value+=discount*sumOnTransition;
 
 						//Q(s,a)<-R(s,a) + gamma*sum{s}(T(s,a,s')V(s'))
 						q[currentCity][deliveryCity].replace(action, value);
@@ -160,13 +193,13 @@ public class ReactiveUncheck implements ReactiveBehavior {
 						}
 					}
 
-					//V(S)<-max{a}(Q(s,a))
-					//also check if we actually changed V(S)
+					//check if we'll actually changed V(s)
 					if(Math.abs(valueOfState[currentCity][deliveryCity]-max)<epsilon) {numberOfStatesUnchanged++;}
+					//V(s)<-max{a}(Q(s,a))
 					valueOfState[currentCity][deliveryCity]=max;
 				}
 
-			}			
+			}
 		}
 
 
@@ -177,6 +210,7 @@ public class ReactiveUncheck implements ReactiveBehavior {
 		 */
 
 		strategy = new int[numCities][numCities+1];
+
 
 		//Loop for all states
 		for(int currentCity=0; currentCity<numCities; currentCity++) {
@@ -190,19 +224,16 @@ public class ReactiveUncheck implements ReactiveBehavior {
 						bestResult = q[currentCity][depositCity].get(k);
 						bestAction=k;
 					}
-					
+
+					/*
+					 * 
+					 */
 					strategy[currentCity][depositCity]=bestAction;
 				}
 			}
 		}
-		
 
 
-
-		this.random = new Random();
-		this.pPickup = discount;
-		this.numActions = 0;
-		this.myAgent = agent;
 
 	}
 
@@ -211,27 +242,56 @@ public class ReactiveUncheck implements ReactiveBehavior {
 		Action action;
 
 		City currentCity = vehicle.getCurrentCity();
-		
-		//action = read_learnt(vehicule.position, task ) 
+
 
 		if(availableTask==null) {
-			
+
 			action = new Move(cities[strategy[currentCity.id][NOTASK]]);
-			
 
 		} else {
 			action = new Pickup(availableTask);
 		}
 
 
-		//TODO
+
 		if (numActions % 1000 == 0) {
-			System.out.println("Uncheck profit after "+numActions+" actions is "+myAgent.getTotalProfit());
+			System.out.println("RLA ("+vehicle.name()+") ["+numActions+"] = "+myAgent.getTotalProfit()+" km:"+myAgent.getTotalDistance());
 		}
 		numActions++;
 
 		return action;
 	}
 
+
+	//Utility to print debug
+	public void printV(double[][] v) {
+		String s= "";
+		for(int i=0; i<v.length; i++) {
+			for(int j=0; j<v[i].length; j++) {
+				s+=(v[i][j])+" ";
+			}
+			s+='\n';
+		}
+		System.out.println(s);
+	}
+
+	public void printV(int[][] v) {
+		String s= "";
+		for(int i=0; i<v.length; i++) {
+			for(int j=0; j<v[i].length; j++) {
+				s+=(v[i][j])+" ";
+			}
+			s+='\n';
+		}
+		System.out.println(s);
+	}
+
+	public void printV(int[] v) {
+		String s="";
+		for(int i=0; i<v.length; i++) {
+			s+=(v[i])+" ";
+		}
+		System.out.println(s);
+	}
 
 }
