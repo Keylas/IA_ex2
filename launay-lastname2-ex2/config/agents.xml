@@ -13,7 +13,25 @@
 	<agent name="reactive-rla">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveRLA"/>
+		<set discount-factor=".95"/>
+	</agent>
+	
+	<agent name="reactive-rla2">
+		<set class-path="bin/"/>
+		<set class-name="template.ReactiveRLA"/>
 		<set discount-factor=".99"/>
+	</agent>
+	
+	<agent name="reactive-rla3">
+		<set class-path="bin/"/>
+		<set class-name="template.ReactiveRLA"/>
+		<set discount-factor=".75"/>
+	</agent>
+	
+	<agent name="reactive-rla4">
+		<set class-path="bin/"/>
+		<set class-name="template.ReactiveRLA"/>
+		<set discount-factor=".50"/>
 	</agent>
 	
 	<agent name="reactive-ins">
@@ -24,8 +42,8 @@
 	
 	<agent name="reactive-un">
 		<set class-path="bin/"/>
-		<set class-name="template.ReactiveUncheck"/>
-		<set discount-factor=".0"/>
+		<set class-name="template.ReactiveNoThreshold"/>
+		<set discount-factor=".90"/>
 	</agent>
 	
 </agents>

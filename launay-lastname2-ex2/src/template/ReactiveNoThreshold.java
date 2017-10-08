@@ -14,7 +14,7 @@ import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
-public class ReactiveUncheck implements ReactiveBehavior {
+public class ReactiveNoThreshold implements ReactiveBehavior {
 
 	private Random random;
 	private double pPickup;
@@ -33,8 +33,13 @@ public class ReactiveUncheck implements ReactiveBehavior {
 	 */
 	private City[] cities;
 
-
-	private int[][] strategy;
+	/*
+	 * Strategy of the agent =  bestAction(s) u threshold(s)
+	 * a state is {currentCity} x {depositCityForTask} (with destination possibly null so numCity*(numCity+1) possible states
+	 * When it has to take a decision, the agent look at the reward for the available task (if applicable).
+	 * It pickups if reward=>threshold[currentCity][depositCity], else it goes to bestAction[currentCity][depositCity] 
+	 */
+	private int[][] bestMove;
 
 
 	@SuppressWarnings("unchecked")
@@ -103,6 +108,15 @@ public class ReactiveUncheck implements ReactiveBehavior {
 			probabilityForTask[city1.id][numCities]=td.probability(city1, null);
 		}
 
+		/*
+		//Print world properties
+		System.out.println("Moving Costs");
+		printV(costBetweenCities);
+		System.out.println("Rewards");
+		printV(expectedTaskReward);
+		System.out.println("Probabilities");
+		printV(probabilityForTask);
+		 */
 
 		//instantiate our V(S) that give the value of states
 		double[][] valueOfState = new double[numCities][numCities+1];
@@ -206,33 +220,34 @@ public class ReactiveUncheck implements ReactiveBehavior {
 		/*Fill the strategy:
 		 * when in a state s=(city,task) [s]=[i][j]
 		 * either pickup task if the reward is above threshold[s]
-		 * or move to the best city with is strategy[s]
+		 * or move to the best city which is bestAction[s]
 		 */
 
-		strategy = new int[numCities][numCities+1];
-
+		bestMove = new int[numCities][numCities+1];
 
 		//Loop for all states
 		for(int currentCity=0; currentCity<numCities; currentCity++) {
 			for(int depositCity=0; depositCity<numCities+1; depositCity++) {
 
-				//Find again what the best EXPECTED action is : max{a}Q(s,a)
-				int bestAction=PICKUP;
+				int bestCity=PICKUP;
 				double bestResult=Double.NEGATIVE_INFINITY;
 				for(int k:q[currentCity][depositCity].keySet()) {
 					if(q[currentCity][depositCity].get(k)>bestResult) {
 						bestResult = q[currentCity][depositCity].get(k);
-						bestAction=k;
+						bestCity=k;
 					}
 
 					/*
 					 * 
 					 */
-					strategy[currentCity][depositCity]=bestAction;
+					bestMove[currentCity][depositCity]=bestCity;
 				}
 			}
 		}
 
+		//Print computed strategy
+		System.out.println("BestAction");
+		printV(bestMove);
 
 
 	}
@@ -243,19 +258,25 @@ public class ReactiveUncheck implements ReactiveBehavior {
 
 		City currentCity = vehicle.getCurrentCity();
 
+		int depositCity=NOTASK;
+		
+		if(availableTask!=null) {
+			depositCity=availableTask.deliveryCity.id;
+		}
 
-		if(availableTask==null) {
+		if(bestMove[currentCity.id][depositCity]==PICKUP) {
 
-			action = new Move(cities[strategy[currentCity.id][NOTASK]]);
+			action = new Pickup(availableTask);
+			
 
 		} else {
-			action = new Pickup(availableTask);
+			action = new Move(cities[bestMove[currentCity.id][depositCity]]);
 		}
 
 
 
 		if (numActions % 1000 == 0) {
-			System.out.println("RLA ("+vehicle.name()+") ["+numActions+"] = "+myAgent.getTotalProfit()+" km:"+myAgent.getTotalDistance());
+			System.out.println("NoThreshold {"+pPickup+"} ("+vehicle.name()+") ["+numActions+"] = "+myAgent.getTotalProfit()+" km:"+myAgent.getTotalDistance());
 		}
 		numActions++;
 
