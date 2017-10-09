@@ -106,7 +106,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 			probabilityForTask[city1.id][NOTASK]=td.probability(city1, null);
 		}
 
-		//
+		/*
 		//Print world properties
 		System.out.println("Moving Costs");
 		printV(costBetweenCities);
@@ -114,7 +114,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 		printV(taskReward);
 		System.out.println("Probabilities");
 		printV(probabilityForTask);
-		 //
+		 */
 
 		//instantiate our V(S) that give the value of states
 		double[][] valueOfState = new double[numCities][numCities+1];
@@ -271,7 +271,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 
 
-		if (numActions % 10000 == 0) {
+		if (numActions % 1000 == 0) {
 			System.out.println("RLA {"+discount+"} ("+vehicle.name()+") ["+numActions+"] = "+myAgent.getTotalProfit()+" km:"+myAgent.getTotalDistance());
 		}
 		numActions++;
