@@ -18,7 +18,7 @@
 			the probabilities, rewards and weight of tasks
 		-->
 		<probability distribution="constant" value="1" />
-		<reward distribution="constant" value="5000" />
+		<reward distribution="uniform" min="0" max="50000" />
 		<weight distribution="constant" value="3" />
 		<no-task distribution="constant" value="0.9" />
 	</tasks>

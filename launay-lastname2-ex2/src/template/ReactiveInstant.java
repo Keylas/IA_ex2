@@ -16,12 +16,9 @@ import logist.topology.Topology.City;
 public class ReactiveInstant implements ReactiveBehavior {
 
 	private Random random;
-	private double pPickup;
 	private int numActions;
 	private Agent myAgent;
 	
-	private TaskDistribution taskDistribution;
-	private Topology topology;
 	
 	private double[] cityExpectation;
 	private City[] strategy;
@@ -29,15 +26,8 @@ public class ReactiveInstant implements ReactiveBehavior {
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 
-		// Reads the discount factor from the agents.xml file.
-		// If the property is not present it defaults to 0.95
-		Double discount = agent.readProperty("discount-factor", Double.class,
-				0.95);
 
-		this.taskDistribution=td;
-		this.topology=topology;
 		this.random = new Random();
-		this.pPickup = discount;
 		this.numActions = 0;
 		this.myAgent = agent;
 		
@@ -58,7 +48,7 @@ public class ReactiveInstant implements ReactiveBehavior {
 		for(City city1: topology) {
 			double best = Double.NEGATIVE_INFINITY;
 			for(City city2: city1.neighbors()) {
-				if(city1!=city2 && cityExpectation[city2.id]-city1.distanceTo(city2)*costPerKm>best) {
+				if(cityExpectation[city2.id]-city1.distanceTo(city2)*costPerKm>best) {
 					best=cityExpectation[city2.id]-city1.distanceTo(city2)*costPerKm;
 					strategy[city1.id]=city2;
 				}

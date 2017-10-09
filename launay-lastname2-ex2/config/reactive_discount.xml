@@ -7,7 +7,7 @@
 	<settings import="config/settings_default.xml" />	
 	
 	<!-- load the topology-->
-	<topology import="config/topology/france.xml" />
+	<topology import="config/topology/switzerland.xml" />
 	
 	<!-- load agents -->
 	<agents import="config/agents.xml" />
@@ -17,10 +17,10 @@
 		<!--
 			the probabilities, rewards and weight of tasks
 		-->
-		<probability distribution="constant" value="1" />
-		<reward distribution="uniform" min="-50000" max="50000" />
+		<probability distribution="uniform" min="0.0" max="1.0" />
+		<reward distribution="uniform" policy="long-distances" min="1000" max="99999" />
 		<weight distribution="constant" value="3" />
-		<no-task distribution="uniform" min="0.1" max="0.9" />
+		<no-task distribution="uniform" min="0.2" max="0.4" />
 	</tasks>
 	
 	<!-- the companies and vehicles in the simulation -->

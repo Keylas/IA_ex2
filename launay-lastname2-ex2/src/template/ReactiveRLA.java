@@ -17,7 +17,7 @@ import logist.topology.Topology.City;
 public class ReactiveRLA implements ReactiveBehavior {
 
 	private Random random;
-	private double pPickup;
+	private double discount;
 	private int numActions;
 	private Agent myAgent;
 
@@ -34,13 +34,11 @@ public class ReactiveRLA implements ReactiveBehavior {
 	private City[] cities;
 
 	/*
-	 * Strategy of the agent =  bestAction(s) u threshold(s)
+	 * Strategy of the agent =  strategy(s)
 	 * a state is {currentCity} x {deliveryCityForTask} (with destination possibly null so numCity*(numCity+1) possible states
-	 * When it has to take a decision, the agent look at the reward for the available task (if applicable).
-	 * It pickups if reward=>threshold[currentCity][deliveryCity], else it goes to bestAction[currentCity][depositCity] 
+	 * When it has to take a decision, the agent applies strategy(s)
 	 */
-	private int[] bestMove;
-	private double[][] threshold;
+	private int[][] strategy;
 
 
 	@SuppressWarnings("unchecked")
@@ -52,10 +50,9 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
-		Double discount = agent.readProperty("discount-factor", Double.class,0.95);
+		this.discount = agent.readProperty("discount-factor", Double.class,0.95);
 
 		this.random = new Random();
-		this.pPickup = discount;
 		this.numActions = 0;
 		this.myAgent = agent;
 
@@ -70,7 +67,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 
 
-		System.out.println(numCities);
+		//System.out.println(numCities);
 
 		cities = new City[numCities];
 
@@ -87,7 +84,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 		 */
 		double[][] probabilityForTask = new double[numCities][numCities+1];
 
-		double[][] expectedTaskReward = new double[numCities][numCities];
+		double[][] taskReward = new double[numCities][numCities];
 
 
 
@@ -101,7 +98,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 			for(City city2:topology) {				
 				costBetweenCities[city1.id][city2.id]=city1.distanceTo(city2)*costPerKm; //fill cost table between cities [numCity*numCity]
 				probabilityForTask[city1.id][city2.id]=td.probability(city1, city2); //fill probability for task between city1 and city2
-				expectedTaskReward[city1.id][city2.id]=td.reward(city1, city2); //fill the expected reward for the task
+				taskReward[city1.id][city2.id]=td.reward(city1, city2); //fill the expected reward for the task
 
 			}
 
@@ -114,7 +111,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 		System.out.println("Moving Costs");
 		printV(costBetweenCities);
 		System.out.println("Rewards");
-		printV(expectedTaskReward);
+		printV(taskReward);
 		System.out.println("Probabilities");
 		printV(probabilityForTask);
 		 //
@@ -156,8 +153,8 @@ public class ReactiveRLA implements ReactiveBehavior {
 		 * we stop after a loop reached: forall s, |V(s)_after - V(s)_before|<epsilon
 		 */
 		double epsilon=0.1;
-		if(numCities>1) {epsilon = costBetweenCities[0][1]/10000;}
-		int numberOfStatesUnchanged =0; //when to stop: no value of S(V) has change of more than epsilon 
+		if(numCities>1) {epsilon = costBetweenCities[0][1]/100000;} //index epsilon on the cost to travel, a somehow fair indicator
+		int numberOfStatesUnchanged =0; //when to stop: no value of S(V) has changed of more than epsilon 
 
 
 		while(numberOfStatesUnchanged!=numCities*(numCities+1) && System.currentTimeMillis()-startTime<limiTime*0.8) {
@@ -179,7 +176,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 						if(action==PICKUP) {
 							//if the action is pickup, we'll be moved to the deliveryCity and get a reward
-							value+=expectedTaskReward[currentCity][deliveryCity];
+							value+=taskReward[currentCity][deliveryCity];
 							nextCity=deliveryCity;
 						} else {
 							//else our action is to go to a new city
@@ -221,47 +218,35 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 		/*Fill the strategy:
 		 * when in a state s=(city,task) [s]=[i][j]
-		 * either pickup task if the reward is above threshold[s]
-		 * or move to the best city which is bestAction[s]
+		 * execute strategy(s)
 		 */
 
-		bestMove = new int[numCities];
-
-		threshold = new double[numCities][numCities+1];
+		strategy = new int[numCities][numCities+1];
 
 
 		//Loop for all states
 		for(int currentCity=0; currentCity<numCities; currentCity++) {
 			for(int deliveryCity=0; deliveryCity<numCities+1; deliveryCity++) {
 
-				//Find what the best EXPECTED City is if we don't PICKUP: max{a!=PICKUP}Q(s,a), and the threshold for the reward
-				int bestCity=cities[currentCity].randomNeighbor(random).id;
+				//Find what the best expected action is
+				int bestAction=PICKUP;
 				double bestResult=Double.NEGATIVE_INFINITY;
 				for(int k:q[currentCity][deliveryCity].keySet()) {
-					if(q[currentCity][deliveryCity].get(k)>bestResult && k!=PICKUP) {
+					if(q[currentCity][deliveryCity].get(k)>bestResult) {
 						bestResult = q[currentCity][deliveryCity].get(k);
-						bestCity=k;
+						bestAction=k;
 					}
 
 
-					bestMove[currentCity]=bestCity;
+					strategy[currentCity][deliveryCity]=bestAction;
 
-					//Compute the threshold
-					if(deliveryCity!=NOTASK || deliveryCity==currentCity) {
-						threshold[currentCity][deliveryCity]=q[currentCity][deliveryCity].get(bestCity)-q[currentCity][deliveryCity].get(PICKUP)+expectedTaskReward[currentCity][deliveryCity];
-					} else {
-						threshold[currentCity][deliveryCity] = 0.0;
-					}
 				}
 			}
 		}
 
 		//Print computed strategy
-		System.out.println("BestAction");
-		printV(bestMove);
-		System.out.println("Thresholds");
-		printV(threshold);
-
+		System.out.println("Strategy "+discount);
+		printV(strategy);
 
 
 	}
@@ -272,10 +257,9 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 		City currentCity = vehicle.getCurrentCity();
 
+		if(availableTask==null || strategy[currentCity.id][availableTask.deliveryCity.id]!=PICKUP) {
 
-		if(availableTask==null || availableTask.reward<threshold[currentCity.id][availableTask.deliveryCity.id]) {
-
-			action = new Move(cities[bestMove[currentCity.id]]);
+			action = new Move(cities[strategy[currentCity.id][NOTASK]]);
 
 		} else {
 			action = new Pickup(availableTask);
@@ -283,8 +267,8 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 
 
-		if (numActions % 1000 == 0) {
-			System.out.println("RLA {"+pPickup+"} ("+vehicle.name()+") ["+numActions+"] = "+myAgent.getTotalProfit()+" km:"+myAgent.getTotalDistance());
+		if (numActions % 10000 == 0) {
+			System.out.println("RLA {"+discount+"} ("+vehicle.name()+") ["+numActions+"] = "+myAgent.getTotalProfit()+" km:"+myAgent.getTotalDistance());
 		}
 		numActions++;
 
