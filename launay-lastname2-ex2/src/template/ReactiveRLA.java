@@ -103,7 +103,7 @@ public class ReactiveRLA implements ReactiveBehavior {
 			}
 
 			// also fill the probability for no task in city1
-			probabilityForTask[city1.id][numCities]=td.probability(city1, null);
+			probabilityForTask[city1.id][NOTASK]=td.probability(city1, null);
 		}
 
 		//
@@ -119,26 +119,26 @@ public class ReactiveRLA implements ReactiveBehavior {
 		//instantiate our V(S) that give the value of states
 		double[][] valueOfState = new double[numCities][numCities+1];
 
-		//Create Q(S,a): for each numCity*(numCity+1) state [][] , we have a list of possible actions that give a vaule (so it is Hasmap<actioncode> => Q(s,a))
+		//Create Q(S,a): for each numCity*(numCity+1) state [][] , we have a list of possible actions that give a value (so it is Hashmap<actioncode> => Q(s,a))
 		HashMap<Integer,Double>[][] q = (HashMap<Integer,Double>[][]) Array.newInstance(HashMap.class, topology.size(),topology.size()+1);
 
 		//Instantiate Q(S) & V(S)
 
 		//Double loop on the cities and the possible tasks <=> loop on the states
-		for(City cCity: topology) {
+		for(City currentCity: topology) {
 			for(int deliveryCity=0; deliveryCity<numCities+1; deliveryCity++) {
 
 				/*For every state, create the set of possible actions and their result
 				 * Action = move to city_i which is in currentCity.neighbors() (action i)
 				 * or pickup task (action PICKUP)
-				 * [We use numCity as PICKUP code since cities goes from 0 to numCity
+				 * [We use numCity as PICKUP code since cities goes from 0 to numCity]
 				 */
 				HashMap<Integer,Double> h = new HashMap<Integer,Double>();
-				for(City nCity:cCity.neighbors()) {
-					h.put(nCity.id, -costBetweenCities[cCity.id][nCity.id]);
+				for(City neighborCity:currentCity.neighbors()) {
+					h.put(neighborCity.id, -costBetweenCities[currentCity.id][neighborCity.id]);
 				}
 				if(deliveryCity!=NOTASK) {h.put(PICKUP,0.0);}	//if we are in a state with an available task, action pickup possible
-				q[cCity.id][deliveryCity]=h;
+				q[currentCity.id][deliveryCity]=h;
 			}
 		}
 
@@ -150,12 +150,13 @@ public class ReactiveRLA implements ReactiveBehavior {
 
 		/*
 		 * Control variables to check for convergence:
-		 * we stop after a loop reached: forall s, |V(s)_after - V(s)_before|<epsilon
+		 * we stop after a loop reached: for all s, |V(s)_after - V(s)_before|<epsilon
 		 */
 		double epsilon=0.1;
 		if(numCities>1) {epsilon = costBetweenCities[0][1]/100000;} //index epsilon on the cost to travel, a somehow fair indicator
 		int numberOfStatesUnchanged =0; //when to stop: no value of S(V) has changed of more than epsilon 
 
+		int numberLoop=0;
 
 		while(numberOfStatesUnchanged!=numCities*(numCities+1) && System.currentTimeMillis()-startTime<limiTime*0.8) {
 			numberOfStatesUnchanged=0;
@@ -213,8 +214,11 @@ public class ReactiveRLA implements ReactiveBehavior {
 				}
 
 			}
+			
+			numberLoop++;
 		}
 
+		System.out.println(numberLoop+ "loops");
 
 		/*Fill the strategy:
 		 * when in a state s=(city,task) [s]=[i][j]
@@ -231,10 +235,10 @@ public class ReactiveRLA implements ReactiveBehavior {
 				//Find what the best expected action is
 				int bestAction=PICKUP;
 				double bestResult=Double.NEGATIVE_INFINITY;
-				for(int k:q[currentCity][deliveryCity].keySet()) {
-					if(q[currentCity][deliveryCity].get(k)>bestResult) {
-						bestResult = q[currentCity][deliveryCity].get(k);
-						bestAction=k;
+				for(int action:q[currentCity][deliveryCity].keySet()) {
+					if(q[currentCity][deliveryCity].get(action)>bestResult) {
+						bestResult = q[currentCity][deliveryCity].get(action);
+						bestAction=action;
 					}
 
 
