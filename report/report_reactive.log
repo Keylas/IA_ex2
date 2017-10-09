@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9) (preloaded format=pdflatex 2016.10.1)  8 OCT 2017 22:02
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9) (preloaded format=pdflatex 2016.10.1)  9 OCT 2017 09:26
 entering extended mode
 **./report_reactive.tex
 (report_reactive.tex
@@ -249,17 +249,7 @@ LaTeX Font Info:    ... okay on input line 14.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 
-Overfull \hbox (17.7308pt too wide) in paragraph at lines 22--30
-\OT1/cmr/m/n/10.95 Based on these ob-ser-va-tion, the state rep-re-sen-ta-tion 
-cho-sen for our agent is $\OML/cmm/m/it/10.95 S \OT1/cmr/m/n/10.95 = \OMS/cmsy/
-m/n/10.95 f\OML/cmm/m/it/10.95 currentCity\OMS/cmsy/m/n/10.95 gf\OML/cmm/m/it/1
-0.95 deliveryCity\OMS/cmsy/m/n/10.95 g$
- []
-
-[1
-
-{C:/Users/Clement/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-Overfull \hbox (12.08218pt too wide) in paragraph at lines 42--47
+Overfull \hbox (12.08218pt too wide) in paragraph at lines 39--44
 \OT1/cmr/m/n/10.95 = \OML/cmm/m/it/10.95 probabilityForTask\OT1/cmr/m/n/10.95 (
 \OML/cmm/m/it/10.95 action; deliveryCity[]\OT1/cmr/m/n/10.95 )$ with $\OML/cmm/
 m/it/10.95 action \OMS/cmsy/m/n/10.95 2 f\OML/cmm/m/it/10.95 currentCity:neighb
@@ -268,18 +258,21 @@ ors\OT1/cmr/m/n/10.95 ()\OMS/cmsy/m/n/10.95 g [ f\OML/cmm/m/it/10.95 PICKUP\OMS
  []
 
 
-Overfull \hbox (2.46034pt too wide) in paragraph at lines 42--47
+Overfull \hbox (2.46034pt too wide) in paragraph at lines 39--44
 \OML/cmm/m/it/10.95 probabilityForTask\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 P
 ICKUP; deliveryCity[]\OT1/cmr/m/n/10.95 ) = \OML/cmm/m/it/10.95 probabilityForT
 ask\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 deliveryCity; deliveryCity[]\OT1/cmr
 /m/n/10.95 )$ 
  []
 
+[1
+
+{C:/Users/Clement/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
 [2] [3] (report_reactive.aux) ) 
 Here is how much of TeX's memory you used:
  1831 strings out of 493334
  23866 string characters out of 3144430
- 87382 words of memory out of 3000000
+ 88382 words of memory out of 3000000
  5384 multiletter control sequences out of 15000+200000
  11040 words of font info for 39 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -292,12 +285,12 @@ ype1/public/amsfonts/cm/cmbx10.pfb><D:/Latex/MikTeX/fonts/type1/public/amsfonts
 atex/MikTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><D:/Latex/MikTeX/fonts/ty
 pe1/public/amsfonts/cm/cmmi8.pfb><D:/Latex/MikTeX/fonts/type1/public/amsfonts/c
 m/cmr10.pfb><D:/Latex/MikTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><D:/Latex
-/MikTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><D:/Latex/MikTeX/fonts/type1/pu
-blic/amsfonts/cm/cmsy10.pfb><D:/Latex/MikTeX/fonts/type1/public/amsfonts/cm/cms
-y8.pfb><D:/Latex/MikTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on report_reactive.pdf (3 pages, 144401 bytes).
+/MikTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><D:/Latex/MikTeX/fonts/type1/
+public/amsfonts/cm/cmsy8.pfb><D:/Latex/MikTeX/fonts/type1/public/amsfonts/cm/cm
+ti10.pfb>
+Output written on report_reactive.pdf (3 pages, 131188 bytes).
 PDF statistics:
- 66 PDF objects out of 1000 (max. 8388607)
+ 62 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
